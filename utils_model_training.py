@@ -67,20 +67,15 @@ def log_run_to_mlflow(train_eval_output, train_eval_input, fold, run_name, other
     )'''
 
 
-def preprocess_columns(df, binarize_labels=False):
+
+
+def get_class_id_to_name(binarize_labels: bool=False):
     with h5py.File(file_path, 'r') as f:
         class_id_to_name = {int(k): v.decode('utf-8') for k, v in zip(f['class_ids'][()], f['class_names'][()])}
         print(class_id_to_name)
     if binarize_labels:
         class_id_to_name = {k: 'Other' if v != 'Cloud' else v for k, v in class_id_to_name.items()}
-    df['classes'] = df['classes'].map(class_id_to_name)
-    # df['product_id'] = LabelEncoder().fit_transform(df['product_id'].astype(str))
-    target_col = 'classes'
-    features_to_use = list(filter(lambda x: x.startswith('spectra_'), df.columns))
-    X = df[features_to_use]
-    y = df[target_col]
-    return df, X, y, features_to_use
-
+    return class_id_to_name
 
 def preprocess_categorical(X):
     """
@@ -180,6 +175,7 @@ class TrainEvalInput:
     test_index: List[int]
     feature_names: List[str]
     test_product_ids:List[str]
+    class_id_to_name: dict
 
 
 @dataclass
@@ -203,7 +199,10 @@ def prepare_fold_data(df: pd.DataFrame, binarize_labels: bool, fold: int) -> Tra
     :param fold: Fold number for cross-validation
     :return: TrainEvalInput dataclass with all input parameters
     """
-    df, X, y, features_to_use = preprocess_columns(df, binarize_labels)
+    target_col = 'classes'
+    features_to_use = list(filter(lambda x: x.startswith('spectra_'), df.columns))
+    X = df[features_to_use]
+    y = df[target_col]
     split_file= 'data/project_test_ids_per_fold.csv'
     #If file with test product IDs does not exist, raise an error
     if not os.path.exists(split_file):
@@ -232,7 +231,8 @@ def prepare_fold_data(df: pd.DataFrame, binarize_labels: bool, fold: int) -> Tra
         feature_names=features_to_use,
         train_index=train_index,
         test_index=test_index,
-        test_product_ids=test_product_ids
+        test_product_ids=test_product_ids,
+        class_id_to_name=get_class_id_to_name(binarize_labels)
     )
     return train_eval_input
 
@@ -244,7 +244,7 @@ def fix_random_seed(s):
     random.seed(s)
 
 
-def train_and_evaluate_model(train_eval_input: TrainEvalInput, model_class: Callable,
+def train_and_evaluate_model(train_eval_input: TrainEvalInput, model,
                              model_name: str) -> TrainEvalOutput:
     '''
     Trains and evaluates a classification model and returns evaluation artifacts.
@@ -252,7 +252,7 @@ def train_and_evaluate_model(train_eval_input: TrainEvalInput, model_class: Call
     :param train_eval_input,: TrainEvalInput dataclass with all input parameters
     :return: TrainEvalOutput dataclass with all output artifacts
     '''
-    model = model_class()
+
     start_training_time = time()
     model.fit(train_eval_input.X_train, train_eval_input.y_train)
     end_training_time = time()
@@ -262,11 +262,13 @@ def train_and_evaluate_model(train_eval_input: TrainEvalInput, model_class: Call
         feature_importance_figure, _ = create_feature_importance_figure(model, train_eval_input.feature_names)
 
     y_pred = model.predict(train_eval_input.X_test)
-    test_and_predictions = pd.DataFrame(list(zip(list(train_eval_input.y_test), list(y_pred))),
+    y_test_as_string= [train_eval_input.class_id_to_name[x] for x in train_eval_input.y_test]
+    y_pred_as_string= [train_eval_input.class_id_to_name[x] for x in y_pred]
+    test_and_predictions = pd.DataFrame(list(zip(y_test_as_string,y_pred_as_string)),
                                         columns=['target', 'predictions'], index=train_eval_input.test_index)
 
-    confusion_matrix_figure = generate_confusion_matrix_figure(train_eval_input.y_test, y_pred)
-    fold_results = calculate_scores(train_eval_input.y_test, y_pred)
+    confusion_matrix_figure = generate_confusion_matrix_figure(y_test_as_string,y_pred_as_string)
+    fold_results = calculate_scores(y_test_as_string,y_pred_as_string)
     fold_results['Training time'] = end_training_time - start_training_time
     return TrainEvalOutput(
         model=model,
