@@ -22,7 +22,7 @@ from sklearn.preprocessing import LabelEncoder, StandardScaler
 from globals import file_path
 
 
-def get_preprocessor(X):
+def get_preprocessor(X: pd.DataFrame):
     """
     Creates a preprocessing pipeline for numeric features in the given dataset.
 
@@ -119,7 +119,7 @@ def create_feature_importance_figure(model, features_to_use):
     return fig_imp, feature_imp_df
 
 
-def generate_confusion_matrix_figure(y_test, y_pred):
+def generate_confusion_matrix_figure(y_test, y_pred, save_to_file_path=None):
     """
     Generates a confusion matrix plot for the given true and predicted labels.
 
@@ -136,7 +136,10 @@ def generate_confusion_matrix_figure(y_test, y_pred):
     disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=labels)
     disp.plot(ax=ax_cm)
     plt.title(f"Confusion Matrix")
-    plt.close(fig_cm)
+    if save_to_file_path is not None:
+        plt.savefig(save_to_file_path)
+    else:
+        plt.close(fig_cm)
     return fig_cm
 
 
@@ -146,9 +149,9 @@ def calculate_scores(y_test, y_pred):
 
     Metrics include:
     - Accuracy
-    - Precision (weighted)
-    - Recall (weighted)
-    - F1 Score (weighted)
+    - Precision (macro)
+    - Recall (macro)
+    - F1 Score (macro)
 
     Args:
         y_test (array-like): True labels.
@@ -159,9 +162,9 @@ def calculate_scores(y_test, y_pred):
     """
     return {
         'Accuracy': accuracy_score(y_test, y_pred),
-        'Precision': precision_score(y_test, y_pred, average='weighted', zero_division=0),
-        'Recall': recall_score(y_test, y_pred, average='weighted', zero_division=0),
-        'F1 Score': f1_score(y_test, y_pred, average='weighted', zero_division=0),
+        'Precision': precision_score(y_test, y_pred, average='macro', zero_division=0),
+        'Recall': recall_score(y_test, y_pred, average='macro', zero_division=0),
+        'F1 Score': f1_score(y_test, y_pred, average='macro', zero_division=0),
     }
 
 
