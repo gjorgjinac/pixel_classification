@@ -1,17 +1,16 @@
 import pandas as pd
 
-from utils_model_training import preprocess_columns
 from utils_read_data import read_data_into_dataframe
 from globals import *
 from sklearn.model_selection import GroupKFold
 
 df = read_data_into_dataframe(file_path, fields_of_interest)
-df, X, y, features_to_use = preprocess_columns(df,False)
+
 groups = df['product_id']
 lpgo = GroupKFold(n_splits=10)
 
 project_test_ids_per_fold=[]
-for fold, (train_index, test_index) in enumerate(lpgo.split(X, y, groups)):
+for fold, (train_index, test_index) in enumerate(lpgo.split(df, df, groups)):
     test_product_ids = list(set(groups.iloc[test_index].astype(str)))
     project_test_ids_per_fold+=[(fold,i) for i in test_product_ids]
 pd.DataFrame(project_test_ids_per_fold, columns=['fold','product_id']).to_csv('data/project_test_ids_per_fold.csv', index=False)
