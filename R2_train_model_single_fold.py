@@ -1,10 +1,7 @@
-from sklearn.dummy import DummyClassifier
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.neural_network import MLPClassifier
-from sklearn.tree import DecisionTreeClassifier
 import argparse
-from autogluon_sklearn_interface import AutogluonClassifier
+
 from globals import *
+from globals import models
 from utils.utils_model_training import *
 from utils.utils_read_data import read_data_into_dataframe
 
@@ -26,17 +23,6 @@ if __name__ == "__main__":
     if use_mlflow:
         mlflow.set_tracking_uri(uri="http://127.0.0.1:8080")
         mlflow.set_experiment(f"Pixel classification - Binarized: {binarize_labels} 5")
-
-
-    # Define models
-    models = {
-        'Dummy Classifier': DummyClassifier(),
-        'Decision Tree': DecisionTreeClassifier(),
-        'MLP Classifier': MLPClassifier(hidden_layer_sizes=(100, 50), max_iter=100, verbose=True, early_stopping=True,
-                                        solver='sgd', n_iter_no_change=5, tol=0.001),
-        'Random Forest': RandomForestClassifier(n_jobs=-1, verbose=10),
-        'AutoGluon': AutogluonClassifier(time_limit=3600)
-    }
 
     # Read data and encode categorical values
     df = read_data_into_dataframe(file_path, fields_of_interest)
