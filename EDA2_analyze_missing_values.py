@@ -13,9 +13,8 @@ os.makedirs(output_dir, exist_ok=True)
 
 # Read data
 df = read_data_into_dataframe(file_path, fields_of_interest)
-df.sample(10000).to_csv('sample.csv')
-print(df.describe())
 
+print(df.describe())
 
 plot_tasks = [
     (msno.matrix, 'missing_matrix'),
