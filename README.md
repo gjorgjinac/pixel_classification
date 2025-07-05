@@ -17,7 +17,8 @@ label binarization and feature importance analysis.
 ## Repository Structure
 
 ### Exploratory Data Analysis (EDA) scripts
-
+- `EDA1_analyze_class_distribution.py`: Analyzes the distribution of features/classes in the dataset.
+- `EDA2_analyze_missing_values.py`: Analyzes missing values
 
 ### Main model training scripts
 - `download_data.sh`: Script to download the dataset.
