@@ -5,8 +5,8 @@ from sklearn.tree import DecisionTreeClassifier
 import argparse
 from autogluon_sklearn_interface import AutogluonClassifier
 from globals import *
-from utils_model_training import *
-from utils_read_data import read_data_into_dataframe
+from utils.utils_model_training import *
+from utils.utils_read_data import read_data_into_dataframe
 
 binarize_labels = False
 

@@ -1,10 +1,11 @@
 import h5py
-from utils_visualization import *
-from utils_read_data import read_data_into_dataframe
+import os
+from utils.utils_visualization import *
+from utils.utils_read_data import read_data_into_dataframe
 from globals import *
 binarize_labels=False
 # Output folder for plots
-output_dir = 'figures/distribution_analysis'
+output_dir = 'figures/distribution_analysis_test'
 if binarize_labels:
     output_dir+='_binary'
 os.makedirs(output_dir, exist_ok=True)

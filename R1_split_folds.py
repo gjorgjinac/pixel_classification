@@ -1,6 +1,6 @@
 import pandas as pd
 
-from utils_read_data import read_data_into_dataframe
+from  utils.utils_read_data import read_data_into_dataframe
 from globals import *
 from sklearn.model_selection import GroupKFold
 

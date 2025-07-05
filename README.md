@@ -27,9 +27,9 @@ label binarization and feature importance analysis.
 - `R3_analyze_results.py`: Aggregates and visualizes results across folds.
 
 ### Utility Files
-
-- `utils_model_training.py`: Contains utility functions for preprocessing, training, and evaluation.
-- `utils_read_data.py`: Reads data into a pandas DataFrame.
+- `utils/utils_visualization.py`: Contains utility functions for EDA visualizations
+- `utils/utils_model_training.py`: Contains utility functions for preprocessing, training, and evaluation.
+- `utils/utils_read_data.py`: Reads data into a pandas DataFrame.
 - `globals.py`: Defines global variables used across scripts.
 
 ## Installation

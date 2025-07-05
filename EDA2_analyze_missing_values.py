@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import missingno as msno
 
 from globals import *
-from utils_read_data import read_data_into_dataframe
+from  utils.utils_read_data import read_data_into_dataframe
 
 # Output folder for plots
 output_dir = 'figures/missing_data_analysis'
