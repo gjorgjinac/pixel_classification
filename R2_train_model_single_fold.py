@@ -28,7 +28,7 @@ models = {
     'Dummy Classifier': DummyClassifier(),
     'Decision Tree': DecisionTreeClassifier(),
     'MLP Classifier': MLPClassifier(hidden_layer_sizes=(100, 50), max_iter=100, verbose=True, early_stopping=True,
-                                    solver='sgd', learning_rate='adaptive', n_iter_no_change=5),
+                                    solver='sgd', n_iter_no_change=5, tol=0.001),
     'Random Forest': RandomForestClassifier(n_jobs=-1, verbose=10),
     'AutoGluon': AutogluonClassifier(time_limit=3600)
 }
