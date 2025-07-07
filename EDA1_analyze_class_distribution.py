@@ -1,5 +1,4 @@
 import h5py
-import os
 from utils.utils_visualization import *
 from utils.utils_read_data import read_data_into_dataframe
 from globals import *
