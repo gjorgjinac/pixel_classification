@@ -5,4 +5,4 @@ pandas
 missingno
 h5py
 mlflow
-imbalance-learn
+imbalanced-learn
