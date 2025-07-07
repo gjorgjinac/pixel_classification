@@ -23,7 +23,11 @@ label binarization and feature importance analysis.
 ### Main model training scripts
 - `download_data.sh`: Script to download the dataset.
 - `R1_split_folds.py`: Splits the dataset into folds for cross-validation.
-- `R2_train_model_single_fold.py`: Trains and evaluates models for a specific fold.
+- `R2_train_model_single_fold.py`: Trains and evaluates models for a specific fold. Expects as arguments --fold, --use_mlflow, --binarize_labels
+  - `--fold`: Specifies the fold number to train on (0-9).
+  - `--use_mlflow`: If set to non-zero value, logs training metrics to MLflow.
+  - `--binarize_labels`: If set to non-zero value, binarizes labels for binary classification tasks.
+  - `--do_resampling`: Expects string values 'none'/'over'/'under', indicating the type of resampling to use. 'none' means no resampling, 'under' means to use random undersampling, 'over' means to use oversampling.
 - `R3_analyze_results.py`: Aggregates and visualizes results across folds.
 
 ### Utility Files
@@ -55,7 +59,7 @@ label binarization and feature importance analysis.
    ```
 5. Train models for a specific fold:
    ```bash
-    python R2_train_model_single_fold.py --fold 0
+    python R2_train_model_single_fold.py --fold 0 --use_mlflow 0 --binarize_labels 1
     ```
 6. Analyze results across all folds:
 ```bash
