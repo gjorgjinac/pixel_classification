@@ -28,6 +28,7 @@ label binarization and feature importance analysis.
   - `--use_mlflow`: If set to non-zero value, logs training metrics to MLflow.
   - `--binarize_labels`: If set to non-zero value, binarizes labels for binary classification tasks.
   - `--do_resampling`: Expects string values 'none'/'over'/'under', indicating the type of resampling to use. 'none' means no resampling, 'under' means to use random undersampling, 'over' means to use oversampling.
+- `run_experiments.sh`: Runs models for all folds, all combinations of binarize_labels and resampling options (works on linux and requires task spooler for task scheduling)
 - `R3_analyze_results.py`: Aggregates and visualizes results across folds.
 
 ### Utility Files
@@ -37,7 +38,6 @@ label binarization and feature importance analysis.
 - `globals.py`: Defines global variables used across scripts.
 
 ## Installation
-
 ### Local Setup
 
 1. Clone the repository:
@@ -62,10 +62,14 @@ label binarization and feature importance analysis.
    ```bash
    python R1_split_folds.py
    ```
-6. Train models for a specific fold:
+6. Train models for a single fold:
    ```bash
     python R2_train_model_single_fold.py --fold 0 --use_mlflow 0 --binarize_labels 1 --do_resampling none
     ```
+7. Run models for all folds, all combinations of binarize_labels and resampling options (works on linux and requires task spooler for task scheduling)
+```bash
+./run_experiments.sh
+```
 7. Analyze results across all folds:
 ```bash
    python R3_analyze_results.py
