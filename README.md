@@ -45,23 +45,28 @@ label binarization and feature importance analysis.
    git clone <repository-url>
    cd <repository-name>
    ```
-2. Install required packages:
+2. Create a python environment. We use python 3.12
+   ```bash
+   python -m venv venv
+   source venv/bin/activate  # On Windows use `venv\Scripts\activate`
+   ```
+3. Install required packages:
    ```bash
     pip install -r requirements.txt
     ```
-3. Download the dataset:
+4. Download the dataset:
    ```bash
-   ./download_data.sh
+   wget -O "20170710_s2_manual_classification_data.h5" "https://git.gfz-potsdam.de/EnMAP/sentinel2_manual_classification_clouds/-/raw/master/20170710_s2_manual_classification_data.h5"
     ```
-4. Run the data splitting script:
+5. Run the data splitting script:
    ```bash
    python R1_split_folds.py
    ```
-5. Train models for a specific fold:
+6. Train models for a specific fold:
    ```bash
-    python R2_train_model_single_fold.py --fold 0 --use_mlflow 0 --binarize_labels 1
+    python R2_train_model_single_fold.py --fold 0 --use_mlflow 0 --binarize_labels 1 --do_resampling none
     ```
-6. Analyze results across all folds:
+7. Analyze results across all folds:
 ```bash
    python R3_analyze_results.py
    ```
