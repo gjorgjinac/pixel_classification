@@ -5,19 +5,24 @@ from globals import models
 from utils.utils_model_training import *
 from utils.utils_read_data import read_data_into_dataframe
 
-binarize_labels = False
 
-# Ensure output directory exists
-results_dir = f'results/project_split_all_binarized_{binarize_labels}_test'
-os.makedirs(results_dir, exist_ok=True)
+
 if __name__ == "__main__":
     # read fold from command line argument, use argparse
     parser = argparse.ArgumentParser(description='Train models with project split.')
     parser.add_argument('--use_mlflow', type=int, default=0, help='Whether MLflow should be enabled')
+    parser.add_argument('--binarize_labels', type=int, default=0, help='Whether binary (cloud vs non-cloud classification or 6-class classification should be used)')
     parser.add_argument('--fold', type=int, default=0, help='Fold number to process.')
+    parser.add_argument('--do_resampling', type=str, default='none', help='The type of over/under sampling to be used')
     parsed_arguments=parser.parse_args()
     fold = parsed_arguments.fold
     use_mlflow = parsed_arguments.use_mlflow!=0
+    binarize_labels = parsed_arguments.binarize_labels!=0
+    do_resampling = parsed_arguments.do_resampling
+
+    # Ensure output directory exists
+    results_dir = f'results/project_split_all_binarized_{binarize_labels}_do_resampling_{do_resampling}'
+    os.makedirs(results_dir, exist_ok=True)
 
     # Setup MLflow tracking
     if use_mlflow:
@@ -31,7 +36,7 @@ if __name__ == "__main__":
     fix_random_seed(10)
     results = []
 
-    train_eval_input = prepare_fold_data(df=df, binarize_labels=binarize_labels, fold=fold)
+    train_eval_input = prepare_fold_data(df=df, binarize_labels=binarize_labels, fold=fold, do_resampling=do_resampling)
 
     for model_name, model in models.items():
         print(model_name)

@@ -4,7 +4,9 @@ from dataclasses import dataclass
 from datetime import time
 from time import time
 from typing import Callable, List, Optional
-
+from imblearn.over_sampling import SMOTE
+from imblearn.over_sampling import RandomOverSampler
+from imblearn.under_sampling import RandomUnderSampler
 import h5py
 import matplotlib.pyplot as plt
 import mlflow
@@ -67,15 +69,14 @@ def log_run_to_mlflow(train_eval_output, train_eval_input, fold, run_name, other
     )'''
 
 
-
-
-def get_class_id_to_name(binarize_labels: bool=False):
+def get_class_id_to_name(binarize_labels: bool = False):
     with h5py.File(file_path, 'r') as f:
         class_id_to_name = {int(k): v.decode('utf-8') for k, v in zip(f['class_ids'][()], f['class_names'][()])}
         print(class_id_to_name)
     if binarize_labels:
         class_id_to_name = {k: 'Other' if v != 'Cloud' else v for k, v in class_id_to_name.items()}
     return class_id_to_name
+
 
 def preprocess_categorical(X):
     """
@@ -177,7 +178,7 @@ class TrainEvalInput:
     train_index: List[int]
     test_index: List[int]
     feature_names: List[str]
-    test_product_ids:List[str]
+    test_product_ids: List[str]
     class_id_to_name: dict
 
 
@@ -190,7 +191,8 @@ class TrainEvalOutput:
     fold_results: dict
 
 
-def prepare_fold_data(df: pd.DataFrame, binarize_labels: bool, fold: int) -> TrainEvalInput:
+def prepare_fold_data(df: pd.DataFrame, binarize_labels: bool, fold: int,
+                      do_resampling: str = 'none') -> TrainEvalInput:
     """
     Prepares training and testing data for a given fold in cross-validation.
     Reads the test product IDs for the specified fold from a CSV file and uses them to split the dataset.
@@ -200,14 +202,15 @@ def prepare_fold_data(df: pd.DataFrame, binarize_labels: bool, fold: int) -> Tra
     :param df: DataFrame containing the dataset
     :param binarize_labels: Boolean indicating whether to binarize labels
     :param fold: Fold number for cross-validation
+    :param do_resampling: Whether or not resampling should be done
     :return: TrainEvalInput dataclass with all input parameters
     """
     target_col = 'classes'
     features_to_use = list(filter(lambda x: x.startswith('spectra_'), df.columns))
     X = df[features_to_use]
     y = df[target_col]
-    split_file= 'data/project_test_ids_per_fold.csv'
-    #If file with test product IDs does not exist, raise an error
+    split_file = 'data/project_test_ids_per_fold.csv'
+    # If file with test product IDs does not exist, raise an error
     if not os.path.exists(split_file):
         raise FileNotFoundError(f"File {split_file} not found. Please run split_folds.py first.")
 
@@ -217,15 +220,23 @@ def prepare_fold_data(df: pd.DataFrame, binarize_labels: bool, fold: int) -> Tra
     test_index = df[df['product_id'].isin(test_product_ids)].index
     train_index = df[~df['product_id'].isin(test_product_ids)].index
 
-    #Split data
+    # Split data
     X_train, X_test = X.iloc[train_index], X.iloc[test_index]
     y_train, y_test = y.iloc[train_index], y.iloc[test_index]
 
-    #Preprocess data
+    # Preprocess data
     preprocessor = get_preprocessor(X_train)
     X_train = pd.DataFrame(preprocessor.fit_transform(X_train), columns=features_to_use)
     X_test = pd.DataFrame(preprocessor.fit_transform(X_test), columns=features_to_use)
+    print(X_train.shape)
+    if do_resampling == 'over':
+        sm = RandomOverSampler(random_state=42)
+        X_train, y_train = sm.fit_resample(X_train, y_train)
+    if do_resampling == 'under':
+        sm = RandomUnderSampler(random_state=42)
+        X_train, y_train = sm.fit_resample(X_train, y_train)
 
+    print(X_train.shape)
     train_eval_input = TrainEvalInput(
         X_train=X_train,
         y_train=y_train,
@@ -238,8 +249,6 @@ def prepare_fold_data(df: pd.DataFrame, binarize_labels: bool, fold: int) -> Tra
         class_id_to_name=get_class_id_to_name(binarize_labels)
     )
     return train_eval_input
-
-
 
 
 def fix_random_seed(s):
@@ -265,13 +274,13 @@ def train_and_evaluate_model(train_eval_input: TrainEvalInput, model,
         feature_importance_figure, _ = create_feature_importance_figure(model, train_eval_input.feature_names)
 
     y_pred = model.predict(train_eval_input.X_test)
-    y_test_as_string= [train_eval_input.class_id_to_name[x] for x in train_eval_input.y_test]
-    y_pred_as_string= [train_eval_input.class_id_to_name[x] for x in y_pred]
-    test_and_predictions = pd.DataFrame(list(zip(y_test_as_string,y_pred_as_string)),
+    y_test_as_string = [train_eval_input.class_id_to_name[x] for x in train_eval_input.y_test]
+    y_pred_as_string = [train_eval_input.class_id_to_name[x] for x in y_pred]
+    test_and_predictions = pd.DataFrame(list(zip(y_test_as_string, y_pred_as_string)),
                                         columns=['target', 'predictions'], index=train_eval_input.test_index)
 
-    confusion_matrix_figure = generate_confusion_matrix_figure(y_test_as_string,y_pred_as_string)
-    fold_results = calculate_scores(y_test_as_string,y_pred_as_string)
+    confusion_matrix_figure = generate_confusion_matrix_figure(y_test_as_string, y_pred_as_string)
+    fold_results = calculate_scores(y_test_as_string, y_pred_as_string)
     fold_results['Training time'] = end_training_time - start_training_time
     return TrainEvalOutput(
         model=model,
